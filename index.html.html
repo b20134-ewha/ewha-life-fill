@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이화 라이프 필 - 이화여고 생체리듬 분석 시스템</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap">
+    <style>
+        :root {
+            --main-hotpink: #ff007f;     /* 강조용 포인트 핫핑크 */
+            --dark-text: #111111;        /* 왠만하면 검은 글자 처리 */
+            --neon-mint: #00ffcc;        /* 바탕화면: 형광 느낌 네온 민트 */
+            --dot-neon-bright: #66ffdb;  /* 바탕화면용 형광 도트 */
+            --border-dark: #222222;      
+            
+            --stage-good: #00e676;       
+            --stage-warn: #ffea00;       
+            --stage-worry: #ff9100;      
+            --stage-danger: #ff1744;     
+        }
+
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            color: var(--dark-text); /* 기본 검은 글자 */
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+            font-size: 1rem; /* 전체 중간 크기 글자로 통일 */
+            
+            /* 바탕화면 거대 도트 패턴 */
+            background-color: var(--neon-mint);
+            background-image: radial-gradient(var(--dot-neon-bright) 30%, transparent 30%), radial-gradient(var(--dot-neon-bright) 30%, transparent 30%);
+            background-size: 160px 160px;
+            background-position: 0 0, 80px 80px;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 35px;
+            border-radius: 25px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            border: 4px solid var(--border-dark);
+        }
+
+        /* 상단 이화 엠블럼 마크 디자인 */
+        .ewha-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .ewha-logo {
+            width: 80px;
+            height: 80px;
+            background-color: var(--border-dark);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            border: 4px solid var(--main-hotpink);
+        }
+        .ewha-logo::after {
+            content: "이화";
+        }
+
+        h1 { 
+            text-align: center; 
+            color: var(--border-dark); 
+            margin: 15px 0 5px 0;
+            font-size: 1.8rem;
+            letter-spacing: -1px;
+            font-weight: 800;
+        }
+        .subtitle { 
+            text-align: center; 
+            font-size: 1rem; 
+            color: #333; 
+            font-weight: bold;
+            margin-bottom: 35px; 
+            border-bottom: 3px solid var(--border-dark);
+            padding-bottom: 15px;
+        }
+        
+        .section { 
+            background-color: #ffffff;
+            padding: 25px; 
+            border-radius: 20px; 
+            margin-bottom: 25px; 
+            border: 3px solid var(--border-dark);
+        }
+
+        .section h3 { 
+            margin-top: 0; 
+            color: var(--border-dark);
+            border-bottom: 2px solid var(--border-dark);
+            padding-bottom: 5px;
+            display: inline-block;
+            margin-bottom: 22px; 
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .form-group { margin-bottom: 24px; }
+        
+        label, .question-title { 
+            display: block; 
+            font-weight: bold; 
+            margin-bottom: 12px; 
+            color: var(--border-dark); 
+            font-size: 1rem; 
+        }
+        
+        .input-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-weight: bold; }
+        
+        input[type="number"], select { 
+            padding: 10px 12px; 
+            border: 3px solid var(--border-dark); 
+            border-radius: 8px; 
+            font-size: 1rem; 
+            font-weight: bold;
+            font-family: 'Gowun Dodum', sans-serif;
+            background: white;
+            color: var(--border-dark);
+        }
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--main-hotpink);
+        }
+        input[type="number"].time-input { width: 110px; } 
+        input[type="number"].box-input { width: 90px; }
+        select { width: 100%; }
+
+        /* 나이 가로형 체크박스 */
+        .horizontal-checkbox-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+        .geo-label {
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border: 3px solid var(--border-dark);
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            color: var(--border-dark);
+            transition: 0.2s;
+        }
+        .geo-label input[type="radio"] {
+            margin-right: 8px;
+            accent-color: var(--main-hotpink);
+            transform: scale(1.1);
+        }
+        .geo-label:has(input[type="radio"]:checked) {
+            border-color: var(--main-hotpink);
+            color: var(--main-hotpink);
+        }
+
+        /* 운동 강도 및 스트레스 수치 세로형 체크박스 */
+        .vertical-checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        .v-label {
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border: 3px solid var(--border-dark);
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            color: var(--border-dark);
+            transition: 0.2s;
+        }
+        .v-label input[type="radio"] {
+            margin-right: 12px;
+            accent-color: var(--main-hotpink);
+            transform: scale(1.2);
+        }
+        .v-label:has(input[type="radio"]:checked) {
+            border-color: var(--main-hotpink);
+            color: var(--main-hotpink);
+        }
+
+        /* 24시간 원형 시계 슬라이더 */
+        .clock-container { display: flex; flex-direction: column; align-items: center; margin: 20px 0; }
+        .canvas-wrapper { position: relative; width: 260px; height: 260px; }
+        canvas { background: #fff; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; border: 3px solid var(--border-dark); }
+        .time-info { margin-top: 15px; font-size: 1rem; font-weight: bold; background: #fff; padding: 12px 20px; border-radius: 20px; border: 3px solid var(--border-dark); text-align: center; }
+
+        /* 피로도 체크박스 */
+        .fatigue-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+        .fatigue-options { display: flex; gap: 15px; align-items: center; }
+        .fatigue-circle { cursor: pointer; }
+        .fatigue-circle input { display: none; }
+        .circle-btn { display: inline-block; border: 3px solid var(--border-dark); border-radius: 50%; background: #fff; transition: all 0.2s; }
+        .f-1 { width: 20px; height: 20px; }
+        .f-2 { width: 24px; height: 24px; }
+        .f-3 { width: 28px; height: 28px; }
+        .f-4 { width: 24px; height: 24px; }
+        .f-5 { width: 20px; height: 20px; }
+        .fatigue-circle input:checked + .circle-btn { background: var(--main-hotpink); box-shadow: inset 0 0 0 5px var(--border-dark); border-color: var(--border-dark); }
+
+        /* 카페인 항목 */
+        .caffeine-item { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 10px 15px; border-radius: 12px; margin-bottom: 10px; border: 2px solid var(--border-dark); }
+
+        /* 버튼 컴포넌트 */
+        .btn-submit { display: block; width: 100%; padding: 16px; background: var(--main-hotpink); color: white; border: 3px solid var(--border-dark); border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 15px; font-family: 'Gowun Dodum', sans-serif; }
+        .btn-submit:hover { background: #e00070; transform: translateY(-2px); }
+        
+        .btn-algo { background: var(--main-hotpink); color: #fff; border: 2px solid var(--border-dark); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 10px; transition: 0.2s; font-family: 'Gowun Dodum', sans-serif; }
+        .btn-algo:hover { background: var(--border-dark); color: white; }
+
+        /* 결과창 구성 */
+        #result-box { display: none; margin-top: 35px; padding: 25px; border: 4px solid var(--border-dark); border-radius: 20px; background: #ffffff; }
+        .result-main-title { text-align: center; color: var(--border-dark); font-size: 1.4rem; margin-top: 0; margin-bottom: 25px; border-bottom: 3px solid var(--border-dark); padding-bottom: 10px; }
+        
+        .result-item { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 2px dashed var(--border-dark); font-size: 1rem; }
+        .result-item h4 { font-size: 1rem; margin: 0 0 10px 0; }
+        .result-item p { font-size: 1rem; margin: 5px 0; }
+        .result-item:last-child { border-bottom: none; }
+        
+        .badge { display: inline-block; padding: 5px 14px; border-radius: 8px; font-size: 1rem; font-weight: bold; color: #111; margin-right: 8px; border: 1px solid #111; }
+        .stage-양호 { background-color: var(--stage-good); }
+        .stage-주의 { background-color: var(--stage-warn); }
+        .stage-걱정 { background-color: var(--stage-worry); color: #fff; }
+        .stage-심각 { background-color: var(--stage-danger); color: #fff; }
+
+        /* 모달 팝업 스타일 */
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0, 0, 0, 0.4); justify-content:center; align-items:center; z-index:1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; max-width: 550px; width:90%; max-height: 85vh; overflow-y: auto; position: relative; border: 4px solid var(--border-dark); font-size: 1rem; }
+        .modal-title { color: var(--border-dark); margin-top: 0; border-bottom: 3px solid var(--border-dark); padding-bottom: 10px; font-size: 1.2rem; }
+        
+        .notice-text { color: var(--border-dark); padding: 12px; font-size: 1rem; font-weight: bold; margin-bottom: 20px; text-align: center; border: 2px dashed var(--border-dark); }
+        
+        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--border-dark); font-weight: bold; }
+        .deep-q-group { margin-bottom: 18px; background: #ffffff; padding: 16px; border-radius: 12px; border: 1px solid #ddd; border-left: 6px solid var(--border-dark); }
+        .deep-q-group p { margin: 0 0 12px 0; font-weight: bold; font-size: 1rem; color: #111; }
+        
+        .checkbox-label { display: block; margin-bottom: 8px; font-weight: normal; cursor: pointer; font-size: 1rem; color: #222; }
+        .checkbox-label input { margin-right: 8px; accent-color: var(--main-hotpink); transform: scale(1.1); }
+        
+        /* 대안 상자 */
+        #solution-display { display: none; margin-top: 20px; padding: 20px; background: #ffffff; border: 3px dashed var(--border-dark); font-size: 1rem; line-height: 1.6; color: #111; }
+        
+        .pink-point { color: var(--main-hotpink); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="ewha-header">
+        <div class="ewha-logo"></div>
+        <h1>이화 라이프 필</h1>
+        <div class="subtitle">이화여자고등학교 학생 생활 패턴 분석 및 생체리듬 피드백 시스템</div>
+    </div>
+
+    <form id="lifeForm" onsubmit="runFirstAnalysis(event)">
+        <div class="form-group">
+            <span class="question-title">1. 기본 정보 입력</span>
+            <div class="input-row" style="margin-bottom: 15px;">
+                <span>나이 (만):</span>
+                <div class="horizontal-checkbox-group">
+                    <label class="geo-label"><input type="radio" name="age_choice" value="17" checked> 17세</label>
+                    <label class="geo-label"><input type="radio" name="age_choice" value="18"> 18세</label>
+                    <label class="geo-label"><input type="radio" name="age_choice" value="19"> 19세</label>
+                </div>
+            </div>
+            <div class="input-row">
+                <span>체중:</span>
+                <input type="number" id="weight" value="60" min="30" max="120" class="box-input" required> <span>kg</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>2. 수면 및 피로도 평가</h3>
+            <label>2-1. 수면 및 기상 시간 설정 (24시간 시계 침 조절)</label>
+            <p style="font-size:0.85rem; color:#333; font-weight:bold; margin-top:-5px;">*금색 침(취침 시각)과 검은 침(기상 시각)의 조절 노브를 드래그하여 설정하십시오. (10분 단위)</p>
+            
+            <div class="clock-container">
+                <div class="canvas-wrapper">
+                    <canvas id="clockCanvas" width="260" height="260"></canvas>
+                </div>
+                <div class="time-info">
+                    취침 시각: <span id="sleepLbl">23:30</span> | 기상 시각: <span id="wakeLbl">06:30</span><br>
+                    총 수면 시간: <span id="totalSleepLbl">7.0</span>시간
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>2-2. 주간에 체감하는 피로도의 수준을 선택하십시오.</label>
+                <div class="fatigue-row">
+                    <span style="font-size:1rem; font-weight:bold; color:#111;">피로도 낮음</span>
+                    <div class="fatigue-options">
+                        <label class="fatigue-circle"><input type="radio" name="fatigue" value="1"><span class="circle-btn f-1"></span></label>
+                        <label class="fatigue-circle"><input type="radio" name="fatigue" value="2"><span class="circle-btn f-2"></span></label>
+                        <label class="fatigue-circle"><input type="radio" name="fatigue" value="3"><span class="circle-btn f-3"></span></label>
+                        <label class="fatigue-circle"><input type="radio" name="fatigue" value="4" checked><span class="circle-btn f-4"></span></label>
+                        <label class="fatigue-circle"><input type="radio" name="fatigue" value="5"><span class="circle-btn f-5"></span></label>
+                    </div>
+                    <span style="font-size:1rem; font-weight:bold; color:#111;">피로도 높음</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>3. 운동 습관 및 신체 활동</h3>
+            <div class="form-group">
+                <label>3-1. 운동 주기 및 빈도</label>
+                <div class="input-row">
+                    <span style="background-color: var(--border-dark); color:#fff; padding: 6px 12px; border-radius: 6px; font-size:1rem;">매주 기본 기준</span>
+                    <input type="number" id="workoutCount" value="1" min="0" class="box-input"> <span>번</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="workoutMin">3-2. 1회 평균 유산소 운동 시간</label>
+                <div class="input-row">
+                    <input type="number" id="workoutMin" value="25" min="0" step="5" class="time-input"> <span>분</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <span class="question-title">3-3. 수행하는 운동의 평균적인 강도를 선택하십시오.</span>
+                <div class="vertical-checkbox-group">
+                    <label class="v-label"><input type="radio" name="workoutIntensityChoice" value="low" checked> 저강도 (가벼운 산책 등)</label>
+                    <label class="v-label"><input type="radio" name="workoutIntensityChoice" value="mid"> 중강도 (자전거 타기, 조깅 등)</label>
+                    <label class="v-label"><input type="radio" name="workoutIntensityChoice" value="high"> 고강도 (숨이 차는 운동)</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>4. 학습 환경 및 카페인, 정서 스트레스</h3>
+            <div class="form-group">
+                <label>4-1. 일일 평균 카페인 음료 섭취 빈도 (잔 수를 입력하십시오)</label>
+                <div class="caffeine-item">
+                    <span>아메리카노 (150mg 기준)</span>
+                    <div class="input-row"><input type="number" id="caf-ame" value="1" min="0" class="box-input"> <span>잔</span></div>
+                </div>
+                <div class="caffeine-item">
+                    <span>에너지 드링크 (100mg 기준)</span>
+                    <div class="input-row"><input type="number" id="caf-energy" value="1" min="0" class="box-input"> <span>캔</span></div>
+                </div>
+                <div class="caffeine-item">
+                    <span>커피우유 / 팩커피 (200mg 기준)</span>
+                    <div class="input-row"><input type="number" id="caf-pack" value="0" min="0" class="box-input"> <span>개</span></div>
+                </div>
+                <div class="caffeine-item">
+                    <span>녹차 / 홍차 음료류 (30mg 기준)</span>
+                    <div class="input-row"><input type="number" id="caf-tea" value="0" min="0" class="box-input"> <span>잔</span></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="studyTime">4-2. 하루 평균 개인 주도 학습 시간</label>
+                <div class="input-row">
+                    <input type="number" id="studyTime" value="4" min="0" max="24" class="box-input"> <span>시간</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <span class="question-title">4-3. 현재 본인이 인지하는 학업 부담 및 심리적 불안 수준을 선택하십시오.</span>
+                <div class="vertical-checkbox-group">
+                    <label class="v-label"><input type="radio" name="stressChoice" value="normal"> 안정적이거나 조절 가능한 수준입니다.</label>
+                    <label class="v-label"><input type="radio" name="stressChoice" value="high" checked> 학업 부담감이 존재하며 가끔 불안감을 인지합니다.</label>
+                    <label class="v-label"><input type="radio" name="stressChoice" value="severe"> 스트레스 수치가 높으며 불안감이 빈번하게 발생합니다.</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>5. 식습관 형태</h3>
+            <div class="form-group">
+                <label for="meals">5-1. 하루 평균 식사 횟수를 선택하십시오.</label>
+                <select id="meals">
+                    <option value="3끼">3끼</option>
+                    <option value="2끼">2끼</option>
+                    <option value="1끼" selected>1끼</option>
+                    <option value="0끼">0끼</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">생활 패턴 분석 실행하기</button>
+    </form>
+
+    <div id="result-box">
+        <h2 class="result-main-title">생체리듬 분석 결과</h2>
+        
+        <div class="result-item" id="res-sleep"></div>
+        <div class="result-item" id="res-workout"></div>
+        <div class="result-item" id="res-study"></div>
+        <div class="result-item" id="res-meals"></div> 
+    </div>
+</div>
+
+<div class="modal-overlay" id="deepModal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <h3 class="modal-title" id="modalTitle">세부 원인 평가 및 진단</h3>
+        
+        <div class="notice-text">“2차 설문을 통해 나만의 해결방안을 받아보세요!”</div>
+        
+        <form id="deepForm" onsubmit="runDeepSolution(event)">
+            <div id="deepQuestionsArea"></div>
+            <button type="submit" class="btn-submit">맞춤형 해결 방안 도출</button>
+        </form>
+
+        <div id="solution-display"></div>
+    </div>
+</div>
+
+<script>
+    // --- Canvas 기반 시계 로직 ---
+    const canvas = document.getElementById('clockCanvas');
+    const ctx = canvas.getContext('2d');
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const radius = 100;
+
+    let sleepMinutes = 1410; 
+    let wakeMinutes = 390;   
+    let activeHandle = null;
+
+    function drawClock() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath(); ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffffff'; ctx.fill();
+        ctx.strokeStyle = '#222222'; ctx.lineWidth = 3; ctx.stroke();
+
+        ctx.fillStyle = '#111'; ctx.font = 'bold 11px Gowun Dodum';
+        ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+        const hours = [0, 3, 6, 9, 12, 15, 18, 21];
+        hours.forEach(h => {
+            let angle = (h / 24) * 2 * Math.PI - Math.PI / 2;
+            let tx = cx + (radius - 18) * Math.cos(angle);
+            let ty = cy + (radius - 18) * Math.sin(angle);
+            ctx.fillText(h + "시", tx, ty);
+        });
+
+        let startAngle = (sleepMinutes / 1440) * 2 * Math.PI - Math.PI / 2;
+        let endAngle = (wakeMinutes / 1440) * 2 * Math.PI - Math.PI / 2;
+        ctx.beginPath(); ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius - 4, startAngle, endAngle, false);
+        ctx.fillStyle = 'rgba(255, 0, 127, 0.1)'; ctx.fill(); 
+
+        ctx.beginPath(); ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + (radius - 28) * Math.cos(startAngle), cy + (radius - 28) * Math.sin(startAngle));
+        ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.stroke();
+        
+        ctx.beginPath(); ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + (radius - 28) * Math.cos(endAngle), cy + (radius - 28) * Math.sin(endAngle));
+        ctx.strokeStyle = '#222222'; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.stroke();
+
+        drawKnob(cx + (radius - 28) * Math.cos(startAngle), cy + (radius - 28) * Math.sin(startAngle), '#d4af37');
+        drawKnob(cx + (radius - 28) * Math.cos(endAngle), cy + (radius - 28) * Math.sin(endAngle), '#222222');
+    }
+
+    function drawKnob(x, y, color) {
+        ctx.beginPath(); ctx.arc(x, y, 8, 0, 2 * Math.PI);
+        ctx.fillStyle = color; ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    }
+
+    function timeToStr(min) {
+        let h = Math.floor(min / 60) % 24;
+        let m = min % 60;
+        return (h < 10 ? '0':'') + h + ':' + (m < 10 ? '0':'') + m;
+    }
+
+    function updateClockLabels() {
+        document.getElementById('sleepLbl').innerText = timeToStr(sleepMinutes);
+        document.getElementById('wakeLbl').innerText = timeToStr(wakeMinutes);
+        let diff = wakeMinutes - sleepMinutes;
+        if (diff < 0) diff += 1440;
+        document.getElementById('totalSleepLbl').innerText = (diff / 60).toFixed(1);
+    }
+
+    function onMove(e) {
+        if (!activeHandle) return;
+        let rect = canvas.getBoundingClientRect();
+        let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        let clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        let x = clientX - rect.left - cx;
+        let y = clientY - rect.top - cy;
+        let angle = Math.atan2(y, x) + Math.PI / 2;
+        if (angle < 0) angle += 2 * Math.PI;
+        let rawMin = Math.round((angle / (2 * Math.PI)) * 1440);
+        let finalMin = Math.round(rawMin / 10) * 10 % 1440;
+        if (activeHandle === 'sleep') sleepMinutes = finalMin;
+        else if (activeHandle === 'wake') wakeMinutes = finalMin;
+        drawClock();
+        updateClockLabels();
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+        let rect = canvas.getBoundingClientRect();
+        let x = e.clientX - rect.left - cx;
+        let y = e.clientY - rect.top - cy;
+        let angle = Math.atan2(y, x) + Math.PI / 2; if (angle < 0) angle += 2 * Math.PI;
+        let clickM = (angle / (2 * Math.PI)) * 1440;
+        let dSleep = Math.min(Math.abs(clickM - sleepMinutes), 1440 - Math.abs(clickM - sleepMinutes));
+        let dWake = Math.min(Math.abs(clickM - wakeMinutes), 1440 - Math.abs(clickM - wakeMinutes));
+        activeHandle = (dSleep < dWake) ? 'sleep' : 'wake';
+        onMove(e);
+    });
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', () => activeHandle = null);
+    canvas.addEventListener('touchstart', (e) => {
+        let rect = canvas.getBoundingClientRect();
+        let x = e.touches[0].clientX - rect.left - cx;
+        let y = e.touches[0].clientY - rect.top - cy;
+        let angle = Math.atan2(y, x) + Math.PI / 2; if (angle < 0) angle += 2 * Math.PI;
+        let clickM = (angle / (2 * Math.PI)) * 1440;
+        let dSleep = Math.min(Math.abs(clickM - sleepMinutes), 1440 - Math.abs(clickM - sleepMinutes));
+        let dWake = Math.min(Math.abs(clickM - wakeMinutes), 1440 - Math.abs(clickM - wakeMinutes));
+        activeHandle = (dSleep < dWake) ? 'sleep' : 'wake';
+    });
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); onMove(e); }, { passive: false });
+    window.addEventListener('touchend', () => activeHandle = null);
+    drawClock();
+
+    // --- 지표 분석 처리 모듈 ---
+    let currentEvaluation = { sleep: '', workout: '', study: '', meals: '' };
+    let globalDataSnapshot = {};
+
+    function runFirstAnalysis(event) {
+        event.preventDefault();
+        const weight = parseFloat(document.getElementById('weight').value) || 60;
+        let diff = wakeMinutes - sleepMinutes; if (diff < 0) diff += 1440;
+        const sleepHours = parseFloat((diff / 60).toFixed(1));
+        const fatigue = parseInt(document.querySelector('input[name="fatigue"]:checked').value);
+        
+        const wCount = parseInt(document.getElementById('workoutCount').value) || 0;
+        const wMin = parseInt(document.getElementById('workoutMin').value) || 0;
+        
+        const wInt = document.querySelector('input[name="workoutIntensityChoice"]:checked').value;
+        const stress = document.querySelector('input[name="stressChoice"]:checked').value;
+
+        const ame = parseInt(document.getElementById('caf-ame').value) || 0;
+        const energy = parseInt(document.getElementById('caf-energy').value) || 0;
+        const pack = parseInt(document.getElementById('caf-pack').value) || 0;
+        const tea = parseInt(document.getElementById('caf-tea').value) || 0;
+        const totalCaf = (ame * 150) + (energy * 100) + (pack * 200) + (tea * 30);
+        const maxCaf = parseFloat((weight * 2.5).toFixed(1));
+
+        const studyH = parseInt(document.getElementById('studyTime').value) || 0;
+        const mealsVal = document.getElementById('meals').value;
+
+        globalDataSnapshot = { sleepHours, fatigue, wCount, wMin, wInt, totalCaf, maxCaf, studyH, stress, mealsVal };
+
+        // --- [요구사항 구현] 2. 수면 및 주간 피로도 연동 로직 개정 ---
+        let sleepStage = '주의'; // 기본 디폴트값 (6~8시간 사이 완충 구간용)
+        let isFatigueHigh = (fatigue === 4 || fatigue === 5); // 피로도 높은 쪽 (4, 5단계)
+
+        if (sleepHours <= 4) {
+            // 4시간 이하
+            sleepStage = isFatigueHigh ? '심각' : '걱정';
+        } else if (sleepHours <= 6) {
+            // 4시간 초과 ~ 6시간 이하
+            sleepStage = isFatigueHigh ? '걱정' : '주의';
+        } else if (sleepHours >= 8) {
+            // 8시간 이상
+            if (fatigue === 5) {
+                sleepStage = '걱정'; // 가장 높음
+            } else if (fatigue === 4) {
+                sleepStage = '주의'; // 높음에 가까운 것
+            } else {
+                sleepStage = '양호'; // 낮은 편 (1, 2, 3단계)
+            }
+        } else {
+            // 6시간 초과 ~ 8시간 미만 구간의 디폴트 스케일링 보정
+            sleepStage = isFatigueHigh ? '걱정' : '주의';
+        }
+        currentEvaluation.sleep = sleepStage;
+
+        // 3. 운동 지표 판정
+        if (wMin >= 60 && wCount >= 3 && wInt === 'high') currentEvaluation.workout = '양호';
+        else if (wCount >= 2 && wMin >= 40) currentEvaluation.workout = '주의';
+        else if (wCount === 1 || wMin < 30) currentEvaluation.workout = '걱정';
+        else currentEvaluation.workout = '심각';
+
+        // 4. 학습, 카페인, 스트레스 알고리즘 제어
+        let baseCount = 0;
+        if (studyH < 4) baseCount++;
+        if (stress === 'high') baseCount++;
+        if (totalCaf > maxCaf) baseCount++;
+
+        const stagesOrder = ['양호', '주의', '걱정', '심각'];
+        let finalIndex = Math.min(baseCount, 3);
+
+        if (stress === 'severe') {
+            finalIndex = Math.min(finalIndex + 1, 3);
+        }
+        currentEvaluation.study = stagesOrder[finalIndex];
+
+        // 5. 식습관 지표 판정
+        if (mealsVal === '3끼') currentEvaluation.meals = '양호';
+        else if (mealsVal === '2끼') currentEvaluation.meals = '주의';
+        else if (mealsVal === '1끼') currentEvaluation.meals = '걱정';
+        else currentEvaluation.meals = '심각';
+
+        document.getElementById('result-box').style.display = 'block';
+        
+        renderFirstItem('res-sleep', '수면 및 주간 피로도 지표', currentEvaluation.sleep, `설정 수면 시간: ${sleepHours}시간 / 체감 피로: ${fatigue}단계`, 'sleep');
+        renderFirstItem('res-workout', '운동 및 신체 활동 지표', currentEvaluation.workout, `주간 빈도: ${wCount}회 / 평균 운동 시간: ${wMin}분`, 'workout');
+        renderFirstItem('res-study', '학습 집중도 및 정서 / 카페인 밸런스 지표', currentEvaluation.study, `총 카페인 섭취: ${totalCaf}mg (권고제한: ${maxCaf}mg) / 주도 학습: ${studyH}시간`, 'study');
+        
+        renderMealsDirectResult('res-meals', currentEvaluation.meals, mealsVal);
+
+        document.getElementById('result-box').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderFirstItem(targetId, title, stage, detailText, domainKey) {
+        let html = `<h4>• ${title}</h4><p style="margin: 5px 0 10px 20px;">${detailText}</p><div style="margin-left: 20px;">평가 등급: <span class="badge stage-${stage}">${stage}</span>`;
+        if (stage === '걱정' || stage === '심각') {
+            html += `<br><button type="button" class="btn-algo" onclick="openDeepSurvey('${domainKey}')">대안 알아보기</button>`;
+        }
+        html += `</div>`;
+        document.getElementById(targetId).innerHTML = html;
+    }
+
+    function renderMealsDirectResult(targetId, stage, mealsVal) {
+        let comment = "";
+        if (stage === '양호') {
+            comment = "현재 하루 3끼를 규칙적으로 잘 먹고 있어요. 신체와 두뇌 활성화를 위해 지금의 <span class='pink-point'>균형 잡힌 정시 식사 습관</span>을 꾸준히 유지해보세요.";
+        } else if (stage === '주의') {
+            comment = "하루에 2끼만 먹으면 두뇌 에너지가 부족해질 수 있어요. 등교 전에 가벼운 대용식이라도 챙겨 먹어 <span class='pink-point'>공복 상태를 최소화</span>해보세요.";
+        } else if (stage === '걱정') {
+            comment = "하루에 1끼만 먹는 습관은 체력 저하의 직접적인 원인이 됩니다. 학교 급식실의 정기 식단을 기피하지 말고 <span class='pink-point'>제시간에 온전히 섭취</span>해보세요.";
+        } else {
+            comment = "현재 심각한 결식 상태로 건강에 무리가 갈 수 있어요. 자습 시간을 늘리려는 결식을 중단하고 <span class='pink-point'>정시 식사를 최우선 수칙</span>으로 삼아보세요.";
+        }
+
+        let html = `<h4>• 식사 규칙성 및 영양 지표</h4>
+                    <p style="margin: 5px 0 10px 20px;">선택된 식사 패턴: 하루 평균 ${mealsVal}</p>
+                    <div style="margin-left: 20px; line-height:1.5;">
+                        평가 등급: <span class="badge stage-${stage}">${stage}</span><br>
+                        <span style="display:inline-block; margin-top:8px;">💡 조언: ${comment}</span>
+                    </div>`;
+        document.getElementById(targetId).innerHTML = html;
+    }
+
+    // --- 2차 심층 원인 진단 분석 연동 모듈 ---
+    let currentActiveDomain = '';
+
+    function openDeepSurvey(domain) {
+        currentActiveDomain = domain;
+        const modal = document.getElementById('deepModal');
+        const qArea = document.getElementById('deepQuestionsArea');
+        const mTitle = document.getElementById('modalTitle');
+        document.getElementById('solution-display').style.display = 'none';
+        
+        modal.style.display = 'flex';
+        let html = '';
+
+        if (domain === 'sleep') {
+            mTitle.innerText = '수면 장애 및 생체리듬 요인 진단';
+            html += `<div class="deep-q-group"><p>수면 상태를 확인하기 위해 해당하는 요소를 모두 선택하십시오. (중복 선택 가능)</p>`;
+            html += createDeepCheckbox('s_cause', '0', '기상 시각에 일어나는 과정에서 어려움을 겪고 있습니다.');
+            html += createDeepCheckbox('s_cause', '1', '잠자리에 누운 후 수면에 들기까지 30분 이상의 시간이 소요됩니다.');
+            html += createDeepCheckbox('s_cause', '2', '취침 전 침대에서 스마트폰을 빈번하게 사용합니다.');
+            html += `</div>`;
+        } 
+        else if (domain === 'workout') {
+            mTitle.innerText = '신체 활동 및 운동 제한 요인 진단';
+            html += `<div class="deep-q-group"><p>신체 활동량 부족의 원인을 모두 선택하십시오. (중복 선택 가능)</p>`;
+            html += createDeepCheckbox('w_cause', '0', '학업 일정 및 자습 시간 확보로 인해 평소 운동할 시간이 부족합니다.');
+            html += createDeepCheckbox('w_cause', '1', '혼자 자율적으로 계획을 세워 운동하는 것에 어려움이나 지루함을 느낍니다.');
+            html += createDeepCheckbox('w_cause', '2', '일상생활 중 기초 체력이 부족하여 쉽게 피로감을 체감합니다.');
+            html += `</div>`;
+        } 
+        else if (domain === 'study') {
+            mTitle.innerText = '학습 집중력 저하 및 정서 불안 요인 진단';
+            html += `<div class="deep-q-group"><p>학습 방해 및 정서적 중압감의 원인을 모두 선택하십시오. (중복 선택 가능)</p>`;
+            html += createDeepCheckbox('st_cause', '0', '개인 학습 수행 시 잡생각으로 인해 원활한 집중이 이루어지지 않습니다.');
+            html += createDeepCheckbox('st_cause', '1', '공부에 대한 압박으로 스트레스와 불안감을 자주 느낍니다.');
+            html += createDeepCheckbox('st_cause', '2', '명확한 진학 목표 의식 부족이나 학업 동기 부여가 필요한 상태입니다.');
+            html += `</div>`;
+        }
+
+        qArea.innerHTML = html;
+    }
+
+    function createDeepCheckbox(name, value, labelText) {
+        return `<label class="checkbox-label"><input type="checkbox" name="${name}" value="${value}"> ${labelText}</label>`;
+    }
+
+    function runDeepSolution(event) {
+        event.preventDefault();
+        const solArea = document.getElementById('solution-display');
+        solArea.style.display = 'block';
+        
+        let solHtml = `<strong>[개별 솔루션]</strong><br><br>`;
+        let selectedValues = [];
+        
+        if (currentActiveDomain === 'sleep') {
+            if (globalDataSnapshot.totalCaf > globalDataSnapshot.maxCaf) {
+                solHtml += `• <b>[카페인 섭취 조절 안내]:</b> 현재 누적된 카페인 섭취량이 일일 권고치를 초과하였습니다. 카페인 각성 성분은 수면 유도를 방해하므로, 쉬는 시간이나 하교 시 교내 매점 이용 하여 고카페인 음료 대신 카페인이 포함되지 않은 <span class='pink-point'>보리차 또는 이온 음료로 대체하여 구매하는 습관</span>을 권장합니다.<br><br>`;
+            }
+
+            const checkedBoxes = document.querySelectorAll('input[name="s_cause"]:checked');
+            checkedBoxes.forEach(cb => selectedValues.push(cb.value));
+
+            if (selectedValues.length === 0) {
+                solHtml += `• 선택된 원인이 없습니다. 건강한 규칙 조성을 위해 수면 루틴을 다시 돌아보세요.`;
+            } else {
+                selectedValues.forEach(val => {
+                    if (val === "0") {
+                        solHtml += `• <b>[기상 제어 가이드]:</b> 오전 생체 리듬의 일정한 정립과 정시 기상 습관 형성을 위하여, 학교에서 운영하는 기숙사에 들어가 <span class='pink-point'>생활 관리 루틴을 받아보세요.</span> 만약 부담이 된다면 교내 아침 기도 프로그램에 참여하여 건강한 오전 루틴을 확보해보세요.<br><br>`;
+                    }
+                    if (val === "1") {
+                        solHtml += `• <b>[입면 환경 개선 가이드]:</b> 입면 지연 현상 및 수면 전 심리적 중압감을 완화하기 위하여, 교내 전문 위클래스(Wee 클래스) 상담실에 방문하여 스트레스 조절 상담 프로그램을 제공받거나 취침 전 이화에서 받은 계정으로 <span class='pink-point'>온라인 독서 프로그램을 활용</span>해 가벼운 독서 활동으로 이완을 유도해보세요.<br><br>`;
+                    }
+                    if (val === "2") {
+                        solHtml += `• <b>[디지털 뇌 각성 억제 가이드]:</b> 야간 스마트폰 사용은 수면 호르몬 분비를 차단합니다. 취침 1시간 전 <span class='pink-point'>디지털 기기 사용을 중단하는 습관</span>을 권장합니다.<br><br>`;
+                    }
+                });
+            }
+        } 
+        else if (currentActiveDomain === 'workout') {
+            const checkedBoxes = document.querySelectorAll('input[name="w_cause"]:checked');
+            checkedBoxes.forEach(cb => selectedValues.push(cb.value));
+
+            if (selectedValues.length === 0) {
+                solHtml += `• 신체 활동을 늘리기 위해 가벼운 교내 산책을 습관화해보세요.`;
+            } else {
+                selectedValues.forEach(val => {
+                    if (val === "0") {
+                        solHtml += `• <b>[시간 효율적 신체 활동 대안]:</b> 운동을 위한 별도의 시간 확보가 곤란한 환경인 경우, 점심 식사 종료 직후 동급생들과 함께 <span class='pink-point'>이화여고 교정 내부의 노천극장 및 유관순 기념관 주변 정원 산책로</span>를 매일 2~3바퀴씩 규칙적으로 걷는 일상 신체 활동 루틴을 고정하여 이행해보세요.<br><br>`;
+                    }
+                    if (val === "1") {
+                        solHtml += `• <b>[스포츠 공동체 활동 연계 대안]:</b> 단독 신체 활동에 대한 지속 의지 및 흥미가 부족한 특성을 보완하기 위하여, 교내에서 정기적으로 운영 및 지원하는 <span class='pink-point'>학교 스포츠클럽 프로그램 및 방과 후 자율 체육 활동</span>에 가입하여 소속감을 통한 규칙적 신체 활동을 달성해보세요.<br><br>`;
+                    }
+                    if (val === "2") {
+                        solHtml += `• <b>[체력 인프라 증진 가이드]:</b> 만성적인 체력 고갈 현상을 보완하기 위해, 교내에 구축된 <span class='pink-point'>자율 체력 단련실(교내 헬스장 인프라)</span>의 활용법을 체육 교과 교사에게 자문하여 주 3회 안전하게 활용하며 기초 근력을 증가시켜보세요.<br><br>`;
+                    }
+                });
+            }
+        } 
+        else if (currentActiveDomain === 'study') {
+            const checkedBoxes = document.querySelectorAll('input[name="st_cause"]:checked');
+            checkedBoxes.forEach(cb => selectedValues.push(cb.value));
+
+            if (selectedValues.length === 0) {
+                solHtml += `• 현재의 면학 계획을 차분히 이어나가며 효율적인 조절을 시도해보세요.`;
+            } else {
+                selectedValues.forEach(val => {
+                    if (val === "0") {
+                        solHtml += `• 자습 수행 시 인지 분산 요소를 차단하기 위하여, 학습을 함께하면서 집중력을 유지하고 학습 긴장감을 형성할 수 있는 <span class='pink-point'>교내 도서관을 이용하거나 야간 자율학습을 신청</span>하여 집중 환경을 조성해 보세요. 학교 주변의 4·19혁명기념도서관 또한 정기적으로 이용하여 일관된 학습 환경을 유지할 수 있습니다.<br><br>`;
+                    }
+                    if (val === "1") {
+                        solHtml += `• 학업 수행 중 발생하는 정신적 피로를 완화하고 정서적 안정감을 확보하기 위하여, <span class='pink-point'>교내 정원을 산책하거나 매주 목요일에 진행되는 '목요찬양'에 참여</span>하여 공동체와 함께하고 마음의 안정을 도모해 보세요.<br><br>`;
+                    }
+                    if (val === "2") {
+                        solHtml += `• <b>[목표 의식 고취 프로그램 가이드]:</b> 동기 소멸로 인한 학업 무기력증을 보완하기 위해, 학교 교육과정의 주요 세션인 <span class='pink-point'>'이화 진로의 날' 전문가 초청 상담 코너 및 학과 연계 진로·진학 자율 캠프 프로그램</span>에 참여하여 공부의 목적성을 명확히 확립해보세요.<br><br>`;
+                    }
+                });
+            }
+        }
+
+        solArea.innerHTML = solHtml;
+    }
+
+    function closeModal() {
+        document.getElementById('deepModal').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>
